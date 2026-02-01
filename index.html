@@ -15,27 +15,6 @@
             overflow: hidden;
             background: #1a1a1a;
         }
-        #info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            background: rgba(0,0,0,0.7);
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 100;
-            max-width: 300px;
-        }
-        #info h1 {
-            font-size: 1.4em;
-            margin-bottom: 10px;
-            color: #4CAF50;
-        }
-        #info p {
-            font-size: 0.9em;
-            line-height: 1.5;
-            color: #ccc;
-        }
         #controls {
             position: absolute;
             bottom: 20px;
@@ -52,52 +31,9 @@
             width: 100vw;
             height: 100vh;
         }
-        .legend {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #444;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
-            font-size: 0.85em;
-        }
-        .legend-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
-            margin-right: 10px;
-        }
     </style>
 </head>
 <body>
-    <div id="info">
-        <h1>🏌️ Stafsberg Golfsimulator</h1>
-        <p>3,70m × 8m × 3,2m</p>
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-color" style="background: #3d2817;"></div>
-                <span>Parkett (4m)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #2d5a27;"></div>
-                <span>Kunstgress (4m)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #1a1a1a;"></div>
-                <span>Simulator-bur</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #8b7355;"></div>
-                <span>Gray Oak spiler</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #4a7c59;"></div>
-                <span>Green Leaf vegger</span>
-            </div>
-        </div>
-    </div>
     <div id="controls">
         🖱️ Venstreklikk + dra = roter | Scrollhjul = zoom | Høyreklikk + dra = panorer
     </div>
@@ -133,14 +69,14 @@
         const roomHeight = 3.2;
 
         // Colors
-        const greenLeaf = 0x4a7c59;
+        const darkBeige = 0x8c7b6b;  // Mørk beige for vegger
         const grayOak = 0x8b7355;
         const darkParquet = 0x3d2817;
         const artificialGrass = 0x2d5a27;
         const blackColor = 0x1a1a1a;
 
         // Materials
-        const greenLeafMaterial = new THREE.MeshLambertMaterial({ color: greenLeaf });
+        const darkBeigeMaterial = new THREE.MeshLambertMaterial({ color: darkBeige });
         const grayOakMaterial = new THREE.MeshLambertMaterial({ color: grayOak });
         const parquetMaterial = new THREE.MeshLambertMaterial({ color: darkParquet });
         const grassMaterial = new THREE.MeshLambertMaterial({ color: artificialGrass });
@@ -166,82 +102,72 @@
         grassFloor.receiveShadow = true;
         scene.add(grassFloor);
 
-        // NO CEILING - removed for better visibility
-
-        // Back wall (innerst - where screen is)
+        // Back wall (innerst - where screen is) - dark beige
         const backWall = new THREE.Mesh(
             new THREE.BoxGeometry(roomWidth, roomHeight, 0.1),
-            greenLeafMaterial
+            darkBeigeMaterial
         );
         backWall.position.set(roomWidth/2, roomHeight/2, roomLength);
         scene.add(backWall);
 
-        // Front wall (entrance side)
+        // Front wall (entrance side) - dark beige
         const frontWall = new THREE.Mesh(
             new THREE.BoxGeometry(roomWidth, roomHeight, 0.1),
-            greenLeafMaterial
+            darkBeigeMaterial
         );
         frontWall.position.set(roomWidth/2, roomHeight/2, 0);
         scene.add(frontWall);
 
-        // LEFT wall (spiler/vinduer side) - SWAPPED
+        // LEFT wall (spiler/vinduer side) - BLACK background
         const leftWallBase = new THREE.Mesh(
             new THREE.BoxGeometry(0.1, roomHeight, roomLength),
-            greenLeafMaterial
+            blackMaterial
         );
         leftWallBase.position.set(0, roomHeight/2, roomLength/2);
         scene.add(leftWallBase);
 
-        // Spiler on LEFT wall (gray oak vertical slats) - SWAPPED
-        for (let i = 0; i < 25; i++) {
+        // Spiler on LEFT wall - TETT I TETT (many more slats)
+        const spileWidth = 0.04;
+        const spileGap = 0.02;
+        const spileStep = spileWidth + spileGap;
+        const numSpiles = Math.floor(roomLength / spileStep);
+        
+        for (let i = 0; i < numSpiles; i++) {
             const spile = new THREE.Mesh(
-                new THREE.BoxGeometry(0.08, roomHeight - 0.4, 0.05),
+                new THREE.BoxGeometry(0.06, roomHeight - 0.1, spileWidth),
                 grayOakMaterial
             );
-            spile.position.set(0.05, roomHeight/2, 0.5 + i * 0.3);
+            spile.position.set(0.08, roomHeight/2, 0.1 + i * spileStep);
             scene.add(spile);
         }
 
-        // LED lights between spiler on LEFT wall - SWAPPED
+        // LED lights between some spiler on LEFT wall
         const ledMaterial = new THREE.MeshBasicMaterial({ color: 0xffffcc, emissive: 0xffffcc });
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 10; i++) {
             const led = new THREE.Mesh(
-                new THREE.BoxGeometry(0.02, 0.5, 0.02),
+                new THREE.BoxGeometry(0.01, 0.4, 0.01),
                 ledMaterial
             );
-            led.position.set(0.02, roomHeight/2, 1 + i * 0.9);
+            led.position.set(0.02, roomHeight/2 + 0.5, 0.8 + i * 0.75);
             scene.add(led);
         }
 
-        // Windows on LEFT wall (2 windows, 2m length each) - SWAPPED
+        // Windows on LEFT wall (behind spiler, 2 windows)
         const window1 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.05, 1.2, 1.5),
+            new THREE.BoxGeometry(0.02, 1.2, 1.5),
             windowMaterial
         );
-        window1.position.set(0.1, 1.8, 2);
+        window1.position.set(0.01, 1.8, 2);
         scene.add(window1);
 
         const window2 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.05, 1.2, 1.5),
+            new THREE.BoxGeometry(0.02, 1.2, 1.5),
             windowMaterial
         );
-        window2.position.set(0.1, 1.8, 4.5);
+        window2.position.set(0.01, 1.8, 4.5);
         scene.add(window2);
 
-        // Window frames on LEFT - SWAPPED
-        const frameMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-        function createWindowFrame(z) {
-            const frameTop = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 1.6), frameMaterial);
-            frameTop.position.set(0.1, 2.45, z);
-            scene.add(frameTop);
-            const frameBottom = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 1.6), frameMaterial);
-            frameBottom.position.set(0.1, 1.15, z);
-            scene.add(frameBottom);
-        }
-        createWindowFrame(2);
-        createWindowFrame(4.5);
-
-        // Trackman bench between windows on LEFT - SWAPPED
+        // Trackman bench between windows on LEFT
         const bench = new THREE.Mesh(
             new THREE.BoxGeometry(0.5, 0.75, 0.8),
             grayOakMaterial
@@ -250,7 +176,7 @@
         bench.castShadow = true;
         scene.add(bench);
 
-        // PC Monitor on bench - LEFT side - SWAPPED
+        // PC Monitor on bench - LEFT side
         const monitorStand = new THREE.Mesh(
             new THREE.BoxGeometry(0.1, 0.3, 0.1),
             blackMaterial
@@ -265,15 +191,15 @@
         monitorScreen.position.set(0.35, 1.2, 3.25);
         scene.add(monitorScreen);
 
-        // RIGHT wall (sofa side) - SWAPPED
+        // RIGHT wall (sofa side) - dark beige
         const rightWall = new THREE.Mesh(
             new THREE.BoxGeometry(0.1, roomHeight, roomLength),
-            greenLeafMaterial
+            darkBeigeMaterial
         );
         rightWall.position.set(roomWidth, roomHeight/2, roomLength/2);
         scene.add(rightWall);
 
-        // Corner sofa (RIGHT side near entrance) - SWAPPED
+        // Corner sofa (RIGHT side near entrance)
         const sofaSeat = new THREE.Mesh(
             new THREE.BoxGeometry(1.8, 0.4, 0.9),
             blackMaterial
@@ -303,7 +229,7 @@
         sofaSideBack.position.set(roomWidth - 0.1, 0.6, 1.4);
         scene.add(sofaSideBack);
 
-        // Coffee table - RIGHT side - SWAPPED
+        // Coffee table - RIGHT side
         const tableTop = new THREE.Mesh(
             new THREE.BoxGeometry(0.8, 0.05, 0.5),
             grayOakMaterial
@@ -325,7 +251,7 @@
         tableLeg4.position.set(roomWidth - 1.15, 0.2, 1.6);
         scene.add(tableLeg4);
 
-        // Refrigerator (RIGHT wall, after sofa) - SWAPPED
+        // Refrigerator (RIGHT wall, after sofa)
         const fridge = new THREE.Mesh(
             new THREE.BoxGeometry(0.6, 1.5, 0.6),
             new THREE.MeshLambertMaterial({ color: 0x333333 })
@@ -334,7 +260,7 @@
         fridge.castShadow = true;
         scene.add(fridge);
 
-        // Trash can - RIGHT side - SWAPPED
+        // Trash can - RIGHT side
         const trashCan = new THREE.Mesh(
             new THREE.CylinderGeometry(0.15, 0.12, 0.5, 16),
             new THREE.MeshLambertMaterial({ color: 0x444444 })
@@ -375,7 +301,7 @@
         cageFrontTop.position.set(roomWidth/2, roomHeight - 0.6, 5);
         scene.add(cageFrontTop);
 
-        // Cage top (kept for realism of the netting)
+        // Cage top
         const cageTop = new THREE.Mesh(
             new THREE.BoxGeometry(roomWidth - 0.2, 0.05, 3),
             cageMaterial
@@ -414,7 +340,7 @@
         hittingMat.position.set(roomWidth/2, 0.12, 5.5);
         scene.add(hittingMat);
 
-        // Entrance door indicator (LEFT side, near front) - SWAPPED
+        // Entrance door indicator (LEFT side, near front)
         const doorFrame = new THREE.Mesh(
             new THREE.BoxGeometry(0.08, 2.1, 0.9),
             grayOakMaterial
@@ -436,7 +362,7 @@
         mainLight2.castShadow = true;
         scene.add(mainLight2);
 
-        // Warm accent light for LED strips - LEFT side now
+        // Warm accent light for LED strips
         const ledLight = new THREE.PointLight(0xffffcc, 0.3, 5);
         ledLight.position.set(0.5, roomHeight/2, 4);
         scene.add(ledLight);
