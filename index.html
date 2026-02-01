@@ -69,7 +69,7 @@
         const roomHeight = 3.2;
 
         // Colors
-        const darkBeige = 0x8c7b6b;  // Mørk beige for vegger
+        const darkBeige = 0x8c7b6b;
         const grayOak = 0x8b7355;
         const darkParquet = 0x3d2817;
         const artificialGrass = 0x2d5a27;
@@ -82,7 +82,8 @@
         const grassMaterial = new THREE.MeshLambertMaterial({ color: artificialGrass });
         const blackMaterial = new THREE.MeshLambertMaterial({ color: blackColor });
         const whiteMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-        const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87CEEB, transparent: true, opacity: 0.5 });
+        const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87CEEB, transparent: true, opacity: 0.6 });
+        const doorMaterial = new THREE.MeshLambertMaterial({ color: 0x4a4a4a });
 
         // Floor - Parquet section (first 4 meters from entrance)
         const parquetFloor = new THREE.Mesh(
@@ -110,13 +111,50 @@
         backWall.position.set(roomWidth/2, roomHeight/2, roomLength);
         scene.add(backWall);
 
-        // Front wall (entrance side) - dark beige
-        const frontWall = new THREE.Mesh(
-            new THREE.BoxGeometry(roomWidth, roomHeight, 0.1),
+        // Front wall (entrance side) - dark beige, with door opening on right
+        // Left part of front wall
+        const frontWallLeft = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth - 1.2, roomHeight, 0.1),
             darkBeigeMaterial
         );
-        frontWall.position.set(roomWidth/2, roomHeight/2, 0);
-        scene.add(frontWall);
+        frontWallLeft.position.set((roomWidth - 1.2)/2, roomHeight/2, 0);
+        scene.add(frontWallLeft);
+
+        // Top part above door
+        const frontWallTop = new THREE.Mesh(
+            new THREE.BoxGeometry(1.1, roomHeight - 2.1, 0.1),
+            darkBeigeMaterial
+        );
+        frontWallTop.position.set(roomWidth - 0.6, roomHeight - (roomHeight - 2.1)/2, 0);
+        scene.add(frontWallTop);
+
+        // DOOR on right side of front wall
+        const door = new THREE.Mesh(
+            new THREE.BoxGeometry(0.9, 2.1, 0.08),
+            doorMaterial
+        );
+        door.position.set(roomWidth - 0.55, 1.05, 0.05);
+        scene.add(door);
+
+        // Door handle
+        const doorHandle = new THREE.Mesh(
+            new THREE.BoxGeometry(0.08, 0.15, 0.05),
+            new THREE.MeshLambertMaterial({ color: 0xcccccc })
+        );
+        doorHandle.position.set(roomWidth - 0.25, 1.0, 0.12);
+        scene.add(doorHandle);
+
+        // Door frame
+        const doorFrameMaterial = new THREE.MeshLambertMaterial({ color: 0x5c5c5c });
+        const doorFrameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.2, 0.12), doorFrameMaterial);
+        doorFrameLeft.position.set(roomWidth - 1.05, 1.1, 0.05);
+        scene.add(doorFrameLeft);
+        const doorFrameRight = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.2, 0.12), doorFrameMaterial);
+        doorFrameRight.position.set(roomWidth - 0.05, 1.1, 0.05);
+        scene.add(doorFrameRight);
+        const doorFrameTop = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.12), doorFrameMaterial);
+        doorFrameTop.position.set(roomWidth - 0.55, 2.15, 0.05);
+        scene.add(doorFrameTop);
 
         // LEFT wall (spiler/vinduer side) - BLACK background
         const leftWallBase = new THREE.Mesh(
@@ -126,70 +164,144 @@
         leftWallBase.position.set(0, roomHeight/2, roomLength/2);
         scene.add(leftWallBase);
 
-        // Spiler on LEFT wall - TETT I TETT (many more slats)
-        const spileWidth = 0.04;
-        const spileGap = 0.02;
-        const spileStep = spileWidth + spileGap;
-        const numSpiles = Math.floor(roomLength / spileStep);
+        // Window positions (z-coordinates)
+        const window1Start = 1.25;
+        const window1End = 2.75;
+        const window2Start = 3.75;
+        const window2End = 5.25;
+        const windowBottom = 1.2;
+        const windowTop = 2.4;
+
+        // Windows on LEFT wall - visible through spiler
+        const window1 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, windowTop - windowBottom, window1End - window1Start),
+            windowMaterial
+        );
+        window1.position.set(0.12, (windowTop + windowBottom)/2, (window1Start + window1End)/2);
+        scene.add(window1);
+
+        const window2 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, windowTop - windowBottom, window2End - window2Start),
+            windowMaterial
+        );
+        window2.position.set(0.12, (windowTop + windowBottom)/2, (window2Start + window2End)/2);
+        scene.add(window2);
+
+        // Window frames
+        const windowFrameMaterial = new THREE.MeshLambertMaterial({ color: 0xeeeeee });
         
-        for (let i = 0; i < numSpiles; i++) {
-            const spile = new THREE.Mesh(
-                new THREE.BoxGeometry(0.06, roomHeight - 0.1, spileWidth),
-                grayOakMaterial
-            );
-            spile.position.set(0.08, roomHeight/2, 0.1 + i * spileStep);
-            scene.add(spile);
+        function createWindowFrameLeft(zStart, zEnd) {
+            const width = zEnd - zStart;
+            const height = windowTop - windowBottom;
+            const zCenter = (zStart + zEnd) / 2;
+            const yCenter = (windowTop + windowBottom) / 2;
+            
+            // Frame pieces
+            const top = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, width + 0.1), windowFrameMaterial);
+            top.position.set(0.18, windowTop + 0.03, zCenter);
+            scene.add(top);
+            
+            const bottom = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, width + 0.1), windowFrameMaterial);
+            bottom.position.set(0.18, windowBottom - 0.03, zCenter);
+            scene.add(bottom);
+            
+            const left = new THREE.Mesh(new THREE.BoxGeometry(0.06, height + 0.12, 0.06), windowFrameMaterial);
+            left.position.set(0.18, yCenter, zStart - 0.03);
+            scene.add(left);
+            
+            const right = new THREE.Mesh(new THREE.BoxGeometry(0.06, height + 0.12, 0.06), windowFrameMaterial);
+            right.position.set(0.18, yCenter, zEnd + 0.03);
+            scene.add(right);
+        }
+        
+        createWindowFrameLeft(window1Start, window1End);
+        createWindowFrameLeft(window2Start, window2End);
+
+        // Spiler on LEFT wall - TETT I TETT, but skip window areas
+        const spileWidth = 0.04;
+        const spileGap = 0.015;
+        const spileStep = spileWidth + spileGap;
+        
+        for (let z = 0.1; z < roomLength; z += spileStep) {
+            // Skip window areas - leave gaps for windows
+            const inWindow1 = z > window1Start - 0.1 && z < window1End + 0.1;
+            const inWindow2 = z > window2Start - 0.1 && z < window2End + 0.1;
+            
+            if (!inWindow1 && !inWindow2) {
+                // Full height spile
+                const spile = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, roomHeight - 0.1, spileWidth),
+                    grayOakMaterial
+                );
+                spile.position.set(0.12, roomHeight/2, z);
+                scene.add(spile);
+            } else {
+                // Spile above window
+                const spileTop = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, roomHeight - windowTop - 0.1, spileWidth),
+                    grayOakMaterial
+                );
+                spileTop.position.set(0.12, windowTop + (roomHeight - windowTop)/2, z);
+                scene.add(spileTop);
+                
+                // Spile below window
+                const spileBottom = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, windowBottom - 0.1, spileWidth),
+                    grayOakMaterial
+                );
+                spileBottom.position.set(0.12, windowBottom/2, z);
+                scene.add(spileBottom);
+            }
         }
 
         // LED lights between some spiler on LEFT wall
         const ledMaterial = new THREE.MeshBasicMaterial({ color: 0xffffcc, emissive: 0xffffcc });
-        for (let i = 0; i < 10; i++) {
-            const led = new THREE.Mesh(
-                new THREE.BoxGeometry(0.01, 0.4, 0.01),
-                ledMaterial
-            );
-            led.position.set(0.02, roomHeight/2 + 0.5, 0.8 + i * 0.75);
-            scene.add(led);
+        for (let i = 0; i < 12; i++) {
+            const z = 0.5 + i * 0.65;
+            // Skip LED in window areas
+            const inWindow1 = z > window1Start && z < window1End;
+            const inWindow2 = z > window2Start && z < window2End;
+            if (!inWindow1 && !inWindow2) {
+                const led = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.01, 0.5, 0.01),
+                    ledMaterial
+                );
+                led.position.set(0.05, roomHeight/2 + 0.8, z);
+                scene.add(led);
+            }
         }
-
-        // Windows on LEFT wall (behind spiler, 2 windows)
-        const window1 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.02, 1.2, 1.5),
-            windowMaterial
-        );
-        window1.position.set(0.01, 1.8, 2);
-        scene.add(window1);
-
-        const window2 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.02, 1.2, 1.5),
-            windowMaterial
-        );
-        window2.position.set(0.01, 1.8, 4.5);
-        scene.add(window2);
 
         // Trackman bench between windows on LEFT
         const bench = new THREE.Mesh(
             new THREE.BoxGeometry(0.5, 0.75, 0.8),
             grayOakMaterial
         );
-        bench.position.set(0.35, 0.375, 3.25);
+        bench.position.set(0.35, 0.375, (window1End + window2Start)/2);
         bench.castShadow = true;
         scene.add(bench);
 
-        // PC Monitor on bench - LEFT side
+        // PC Monitor on bench
         const monitorStand = new THREE.Mesh(
             new THREE.BoxGeometry(0.1, 0.3, 0.1),
             blackMaterial
         );
-        monitorStand.position.set(0.35, 0.9, 3.25);
+        monitorStand.position.set(0.35, 0.9, (window1End + window2Start)/2);
         scene.add(monitorStand);
 
         const monitorScreen = new THREE.Mesh(
             new THREE.BoxGeometry(0.05, 0.4, 0.6),
             blackMaterial
         );
-        monitorScreen.position.set(0.35, 1.2, 3.25);
+        monitorScreen.position.set(0.35, 1.2, (window1End + window2Start)/2);
         scene.add(monitorScreen);
+
+        // Monitor screen glow
+        const screenGlow = new THREE.Mesh(
+            new THREE.BoxGeometry(0.01, 0.35, 0.55),
+            new THREE.MeshBasicMaterial({ color: 0x3399ff })
+        );
+        screenGlow.position.set(0.32, 1.2, (window1End + window2Start)/2);
+        scene.add(screenGlow);
 
         // RIGHT wall (sofa side) - dark beige
         const rightWall = new THREE.Mesh(
@@ -340,14 +452,6 @@
         hittingMat.position.set(roomWidth/2, 0.12, 5.5);
         scene.add(hittingMat);
 
-        // Entrance door indicator (LEFT side, near front)
-        const doorFrame = new THREE.Mesh(
-            new THREE.BoxGeometry(0.08, 2.1, 0.9),
-            grayOakMaterial
-        );
-        doorFrame.position.set(0.05, 1.05, 0.5);
-        scene.add(doorFrame);
-
         // Lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
@@ -366,6 +470,15 @@
         const ledLight = new THREE.PointLight(0xffffcc, 0.3, 5);
         ledLight.position.set(0.5, roomHeight/2, 4);
         scene.add(ledLight);
+
+        // Light from windows
+        const windowLight1 = new THREE.PointLight(0xffffff, 0.3, 4);
+        windowLight1.position.set(0.5, 1.8, 2);
+        scene.add(windowLight1);
+        
+        const windowLight2 = new THREE.PointLight(0xffffff, 0.3, 4);
+        windowLight2.position.set(0.5, 1.8, 4.5);
+        scene.add(windowLight2);
 
         // Handle window resize
         window.addEventListener('resize', () => {
