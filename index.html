@@ -111,29 +111,29 @@
         backWall.position.set(roomWidth/2, roomHeight/2, roomLength);
         scene.add(backWall);
 
-        // Front wall (entrance side) - dark beige, with door opening on right
-        // Left part of front wall
-        const frontWallLeft = new THREE.Mesh(
+        // Front wall (entrance side) - dark beige, with door opening on LEFT
+        // Right part of front wall (main wall section)
+        const frontWallRight = new THREE.Mesh(
             new THREE.BoxGeometry(roomWidth - 1.2, roomHeight, 0.1),
             darkBeigeMaterial
         );
-        frontWallLeft.position.set((roomWidth - 1.2)/2, roomHeight/2, 0);
-        scene.add(frontWallLeft);
+        frontWallRight.position.set(roomWidth - (roomWidth - 1.2)/2, roomHeight/2, 0);
+        scene.add(frontWallRight);
 
         // Top part above door
         const frontWallTop = new THREE.Mesh(
             new THREE.BoxGeometry(1.1, roomHeight - 2.1, 0.1),
             darkBeigeMaterial
         );
-        frontWallTop.position.set(roomWidth - 0.6, roomHeight - (roomHeight - 2.1)/2, 0);
+        frontWallTop.position.set(0.6, roomHeight - (roomHeight - 2.1)/2, 0);
         scene.add(frontWallTop);
 
-        // DOOR on right side of front wall
+        // DOOR on LEFT side of front wall
         const door = new THREE.Mesh(
             new THREE.BoxGeometry(0.9, 2.1, 0.08),
             doorMaterial
         );
-        door.position.set(roomWidth - 0.55, 1.05, 0.05);
+        door.position.set(0.55, 1.05, 0.05);
         scene.add(door);
 
         // Door handle
@@ -141,19 +141,19 @@
             new THREE.BoxGeometry(0.08, 0.15, 0.05),
             new THREE.MeshLambertMaterial({ color: 0xcccccc })
         );
-        doorHandle.position.set(roomWidth - 0.25, 1.0, 0.12);
+        doorHandle.position.set(0.85, 1.0, 0.12);
         scene.add(doorHandle);
 
         // Door frame
         const doorFrameMaterial = new THREE.MeshLambertMaterial({ color: 0x5c5c5c });
         const doorFrameLeft = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.2, 0.12), doorFrameMaterial);
-        doorFrameLeft.position.set(roomWidth - 1.05, 1.1, 0.05);
+        doorFrameLeft.position.set(0.05, 1.1, 0.05);
         scene.add(doorFrameLeft);
         const doorFrameRight = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.2, 0.12), doorFrameMaterial);
-        doorFrameRight.position.set(roomWidth - 0.05, 1.1, 0.05);
+        doorFrameRight.position.set(1.05, 1.1, 0.05);
         scene.add(doorFrameRight);
         const doorFrameTop = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.12), doorFrameMaterial);
-        doorFrameTop.position.set(roomWidth - 0.55, 2.15, 0.05);
+        doorFrameTop.position.set(0.55, 2.15, 0.05);
         scene.add(doorFrameTop);
 
         // LEFT wall (spiler/vinduer side) - BLACK background
