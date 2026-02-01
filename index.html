@@ -35,7 +35,7 @@
 </head>
 <body>
     <div id="controls">
-        🖱️ Venstreklikk + dra = roter | Scrollhjul = zoom | Høyreklikk + dra = panorer
+        🖱️ Klikk + dra = se deg rundt 360° | POV: 180cm høyde, midt i rommet
     </div>
     <div id="canvas-container"></div>
 
@@ -46,9 +46,10 @@
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1a1a1a);
 
-        // Camera - positioned above looking down at an angle
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(1.85, 8, -4);
+        // Camera - POV from inside the room at 180cm height
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // Position: center of room width, 1.8m height (180cm person), about 4m into the room
+        camera.position.set(roomWidth/2, 1.8, 4);
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -57,11 +58,14 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Controls
+        // Controls - look around only (no panning/zooming)
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.target.set(1.85, 0, 4);
+        controls.target.set(roomWidth/2, 1.8, 5); // Look slightly forward
+        controls.enableZoom = false; // Disable zoom
+        controls.enablePan = false; // Disable panning
+        controls.rotateSpeed = 0.5; // Slower rotation for smoother look-around
 
         // Room dimensions
         const roomWidth = 3.70;
@@ -102,6 +106,30 @@
         grassFloor.position.set(roomWidth/2, 0.05, 6);
         grassFloor.receiveShadow = true;
         scene.add(grassFloor);
+
+        // Ceiling - dark beige
+        const ceiling = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth, 0.1, roomLength),
+            darkBeigeMaterial
+        );
+        ceiling.position.set(roomWidth/2, roomHeight, roomLength/2);
+        scene.add(ceiling);
+
+        // Ceiling lights (two long fixtures)
+        const lightFixtureMaterial = new THREE.MeshBasicMaterial({ color: 0xffffee });
+        const lightFixture1 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, 0.05, 2),
+            lightFixtureMaterial
+        );
+        lightFixture1.position.set(roomWidth/2, roomHeight - 0.08, 2);
+        scene.add(lightFixture1);
+        
+        const lightFixture2 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, 0.05, 2),
+            lightFixtureMaterial
+        );
+        lightFixture2.position.set(roomWidth/2, roomHeight - 0.08, 6);
+        scene.add(lightFixture2);
 
         // Back wall (innerst - where screen is) - dark beige
         const backWall = new THREE.Mesh(
@@ -490,17 +518,18 @@
         hittingMat.position.set(roomWidth/2, 0.12, 5.5);
         scene.add(hittingMat);
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        // Lighting - inside room
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
 
-        const mainLight = new THREE.PointLight(0xffffff, 0.8, 20);
-        mainLight.position.set(roomWidth/2, roomHeight + 2, 2);
+        // Ceiling lights
+        const mainLight = new THREE.PointLight(0xffffff, 0.7, 15);
+        mainLight.position.set(roomWidth/2, roomHeight - 0.3, 2);
         mainLight.castShadow = true;
         scene.add(mainLight);
 
-        const mainLight2 = new THREE.PointLight(0xffffff, 0.8, 20);
-        mainLight2.position.set(roomWidth/2, roomHeight + 2, 6);
+        const mainLight2 = new THREE.PointLight(0xffffff, 0.7, 15);
+        mainLight2.position.set(roomWidth/2, roomHeight - 0.3, 6);
         mainLight2.castShadow = true;
         scene.add(mainLight2);
 
