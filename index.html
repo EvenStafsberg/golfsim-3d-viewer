@@ -42,9 +42,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script>
+        // Room dimensions - MUST BE DEFINED FIRST
+        const roomWidth = 3.70;
+        const roomLength = 8;
+        const roomHeight = 3.2;
+
         // Scene setup
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
+        scene.background = new THREE.Color(0x2a2a2a);
 
         // Camera - POV from inside the room at 180cm height
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -66,11 +71,6 @@
         controls.enableZoom = false; // Disable zoom
         controls.enablePan = false; // Disable panning
         controls.rotateSpeed = 0.5; // Slower rotation for smoother look-around
-
-        // Room dimensions
-        const roomWidth = 3.70;
-        const roomLength = 8;
-        const roomHeight = 3.2;
 
         // Colors
         const darkBeige = 0x8c7b6b;
@@ -518,17 +518,17 @@
         hittingMat.position.set(roomWidth/2, 0.12, 5.5);
         scene.add(hittingMat);
 
-        // Lighting - inside room
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // Lighting - inside room (brighter for POV)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
         // Ceiling lights
-        const mainLight = new THREE.PointLight(0xffffff, 0.7, 15);
+        const mainLight = new THREE.PointLight(0xffffff, 1.0, 20);
         mainLight.position.set(roomWidth/2, roomHeight - 0.3, 2);
         mainLight.castShadow = true;
         scene.add(mainLight);
 
-        const mainLight2 = new THREE.PointLight(0xffffff, 0.7, 15);
+        const mainLight2 = new THREE.PointLight(0xffffff, 1.0, 20);
         mainLight2.position.set(roomWidth/2, roomHeight - 0.3, 6);
         mainLight2.castShadow = true;
         scene.add(mainLight2);
