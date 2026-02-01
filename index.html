@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stafsberg Golfsimulator - 3D Visualisering</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 300px;
+        }
+        #info h1 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        #info p {
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: #ccc;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 15px 25px;
+            border-radius: 25px;
+            z-index: 100;
+            font-size: 0.85em;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        .legend {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #444;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 0.85em;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <h1>🏌️ Stafsberg Golfsimulator</h1>
+        <p>3,70m × 8m × 3,2m</p>
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3d2817;"></div>
+                <span>Parkett (4m)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2d5a27;"></div>
+                <span>Kunstgress (4m)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #1a1a1a;"></div>
+                <span>Simulator-bur</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #8b7355;"></div>
+                <span>Gray Oak spiler</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4a7c59;"></div>
+                <span>Green Leaf vegger</span>
+            </div>
+        </div>
+    </div>
+    <div id="controls">
+        🖱️ Venstreklikk + dra = roter | Scrollhjul = zoom | Høyreklikk + dra = panorer
+    </div>
+    <div id="canvas-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(6, 4, 8);
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.target.set(1.85, 1.6, 4);
+
+        // Room dimensions
+        const roomWidth = 3.70;
+        const roomLength = 8;
+        const roomHeight = 3.2;
+
+        // Colors
+        const greenLeaf = 0x4a7c59;
+        const grayOak = 0x8b7355;
+        const darkParquet = 0x3d2817;
+        const artificialGrass = 0x2d5a27;
+        const blackColor = 0x1a1a1a;
+
+        // Materials
+        const greenLeafMaterial = new THREE.MeshLambertMaterial({ color: greenLeaf });
+        const grayOakMaterial = new THREE.MeshLambertMaterial({ color: grayOak });
+        const parquetMaterial = new THREE.MeshLambertMaterial({ color: darkParquet });
+        const grassMaterial = new THREE.MeshLambertMaterial({ color: artificialGrass });
+        const blackMaterial = new THREE.MeshLambertMaterial({ color: blackColor });
+        const whiteMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+        const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87CEEB, transparent: true, opacity: 0.5 });
+
+        // Floor - Parquet section (first 4 meters from entrance)
+        const parquetFloor = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth, 0.1, 4),
+            parquetMaterial
+        );
+        parquetFloor.position.set(roomWidth/2, 0.05, 2);
+        parquetFloor.receiveShadow = true;
+        scene.add(parquetFloor);
+
+        // Floor - Artificial grass section (last 4 meters)
+        const grassFloor = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth, 0.1, 4),
+            grassMaterial
+        );
+        grassFloor.position.set(roomWidth/2, 0.05, 6);
+        grassFloor.receiveShadow = true;
+        scene.add(grassFloor);
+
+        // Ceiling
+        const ceiling = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth, 0.1, roomLength),
+            greenLeafMaterial
+        );
+        ceiling.position.set(roomWidth/2, roomHeight, roomLength/2);
+        scene.add(ceiling);
+
+        // Back wall (innerst - where screen is)
+        const backWall = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth, roomHeight, 0.1),
+            greenLeafMaterial
+        );
+        backWall.position.set(roomWidth/2, roomHeight/2, roomLength);
+        scene.add(backWall);
+
+        // Front wall (entrance side)
+        const frontWall = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth, roomHeight, 0.1),
+            greenLeafMaterial
+        );
+        frontWall.position.set(roomWidth/2, roomHeight/2, 0);
+        scene.add(frontWall);
+
+        // Left wall (sofa side)
+        const leftWall = new THREE.Mesh(
+            new THREE.BoxGeometry(0.1, roomHeight, roomLength),
+            greenLeafMaterial
+        );
+        leftWall.position.set(0, roomHeight/2, roomLength/2);
+        scene.add(leftWall);
+
+        // Right wall base (with spiler)
+        const rightWallBase = new THREE.Mesh(
+            new THREE.BoxGeometry(0.1, roomHeight, roomLength),
+            greenLeafMaterial
+        );
+        rightWallBase.position.set(roomWidth, roomHeight/2, roomLength/2);
+        scene.add(rightWallBase);
+
+        // Spiler on right wall (gray oak vertical slats)
+        for (let i = 0; i < 25; i++) {
+            const spile = new THREE.Mesh(
+                new THREE.BoxGeometry(0.08, roomHeight - 0.4, 0.05),
+                grayOakMaterial
+            );
+            spile.position.set(roomWidth - 0.05, roomHeight/2, 0.5 + i * 0.3);
+            scene.add(spile);
+        }
+
+        // LED lights between spiler
+        const ledMaterial = new THREE.MeshBasicMaterial({ color: 0xffffcc, emissive: 0xffffcc });
+        for (let i = 0; i < 8; i++) {
+            const led = new THREE.Mesh(
+                new THREE.BoxGeometry(0.02, 0.5, 0.02),
+                ledMaterial
+            );
+            led.position.set(roomWidth - 0.02, roomHeight/2, 1 + i * 0.9);
+            scene.add(led);
+        }
+
+        // Windows on right wall (2 windows, 2m length each)
+        const window1 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.05, 1.2, 1.5),
+            windowMaterial
+        );
+        window1.position.set(roomWidth - 0.1, 1.8, 2);
+        scene.add(window1);
+
+        const window2 = new THREE.Mesh(
+            new THREE.BoxGeometry(0.05, 1.2, 1.5),
+            windowMaterial
+        );
+        window2.position.set(roomWidth - 0.1, 1.8, 4.5);
+        scene.add(window2);
+
+        // Window frames
+        const frameMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+        function createWindowFrame(z) {
+            const frameTop = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 1.6), frameMaterial);
+            frameTop.position.set(roomWidth - 0.1, 2.45, z);
+            scene.add(frameTop);
+            const frameBottom = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 1.6), frameMaterial);
+            frameBottom.position.set(roomWidth - 0.1, 1.15, z);
+            scene.add(frameBottom);
+        }
+        createWindowFrame(2);
+        createWindowFrame(4.5);
+
+        // Trackman bench between windows
+        const bench = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.75, 0.8),
+            grayOakMaterial
+        );
+        bench.position.set(roomWidth - 0.35, 0.375, 3.25);
+        bench.castShadow = true;
+        scene.add(bench);
+
+        // PC Monitor on bench
+        const monitorStand = new THREE.Mesh(
+            new THREE.BoxGeometry(0.1, 0.3, 0.1),
+            blackMaterial
+        );
+        monitorStand.position.set(roomWidth - 0.35, 0.9, 3.25);
+        scene.add(monitorStand);
+
+        const monitorScreen = new THREE.Mesh(
+            new THREE.BoxGeometry(0.05, 0.4, 0.6),
+            blackMaterial
+        );
+        monitorScreen.position.set(roomWidth - 0.35, 1.2, 3.25);
+        scene.add(monitorScreen);
+
+        // Corner sofa (left side near entrance)
+        const sofaSeat = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 0.4, 0.9),
+            blackMaterial
+        );
+        sofaSeat.position.set(0.95, 0.3, 0.6);
+        sofaSeat.castShadow = true;
+        scene.add(sofaSeat);
+
+        const sofaBack = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8, 0.6, 0.15),
+            blackMaterial
+        );
+        sofaBack.position.set(0.95, 0.6, 0.15);
+        scene.add(sofaBack);
+
+        const sofaSide = new THREE.Mesh(
+            new THREE.BoxGeometry(0.9, 0.4, 0.8),
+            blackMaterial
+        );
+        sofaSide.position.set(0.5, 0.3, 1.45);
+        scene.add(sofaSide);
+
+        const sofaSideBack = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, 0.6, 0.9),
+            blackMaterial
+        );
+        sofaSideBack.position.set(0.1, 0.6, 1.4);
+        scene.add(sofaSideBack);
+
+        // Coffee table
+        const tableTop = new THREE.Mesh(
+            new THREE.BoxGeometry(0.8, 0.05, 0.5),
+            grayOakMaterial
+        );
+        tableTop.position.set(1.5, 0.45, 1.4);
+        tableTop.castShadow = true;
+        scene.add(tableTop);
+
+        const tableLeg1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.05), blackMaterial);
+        tableLeg1.position.set(1.15, 0.2, 1.2);
+        scene.add(tableLeg1);
+        const tableLeg2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.05), blackMaterial);
+        tableLeg2.position.set(1.85, 0.2, 1.2);
+        scene.add(tableLeg2);
+        const tableLeg3 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.05), blackMaterial);
+        tableLeg3.position.set(1.15, 0.2, 1.6);
+        scene.add(tableLeg3);
+        const tableLeg4 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.05), blackMaterial);
+        tableLeg4.position.set(1.85, 0.2, 1.6);
+        scene.add(tableLeg4);
+
+        // Refrigerator (left wall, after sofa)
+        const fridge = new THREE.Mesh(
+            new THREE.BoxGeometry(0.6, 1.5, 0.6),
+            new THREE.MeshLambertMaterial({ color: 0x333333 })
+        );
+        fridge.position.set(0.4, 0.75, 2.5);
+        fridge.castShadow = true;
+        scene.add(fridge);
+
+        // Trash can
+        const trashCan = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15, 0.12, 0.5, 16),
+            new THREE.MeshLambertMaterial({ color: 0x444444 })
+        );
+        trashCan.position.set(0.4, 0.25, 3.2);
+        trashCan.castShadow = true;
+        scene.add(trashCan);
+
+        // Simulator enclosure/cage (black netting - 3m from back wall)
+        const cageMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0x111111, 
+            transparent: true, 
+            opacity: 0.7,
+            side: THREE.DoubleSide
+        });
+
+        // Cage top
+        const cageTop = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth - 0.2, 0.05, 3),
+            cageMaterial
+        );
+        cageTop.position.set(roomWidth/2, roomHeight - 0.2, 6.5);
+        scene.add(cageTop);
+
+        // Cage left side
+        const cageLeft = new THREE.Mesh(
+            new THREE.BoxGeometry(0.05, roomHeight - 0.3, 3),
+            cageMaterial
+        );
+        cageLeft.position.set(0.15, roomHeight/2, 6.5);
+        scene.add(cageLeft);
+
+        // Cage right side
+        const cageRight = new THREE.Mesh(
+            new THREE.BoxGeometry(0.05, roomHeight - 0.3, 3),
+            cageMaterial
+        );
+        cageRight.position.set(roomWidth - 0.15, roomHeight/2, 6.5);
+        scene.add(cageRight);
+
+        // Cage front (with opening for hitting)
+        const cageFrontTop = new THREE.Mesh(
+            new THREE.BoxGeometry(roomWidth - 0.2, 0.8, 0.05),
+            cageMaterial
+        );
+        cageFrontTop.position.set(roomWidth/2, roomHeight - 0.6, 5);
+        scene.add(cageFrontTop);
+
+        // Projector screen (white, on back wall)
+        const screen = new THREE.Mesh(
+            new THREE.BoxGeometry(3, 2.2, 0.05),
+            whiteMaterial
+        );
+        screen.position.set(roomWidth/2, 1.8, 7.9);
+        scene.add(screen);
+
+        // Screen frame
+        const screenFrame = new THREE.MeshLambertMaterial({ color: 0x222222 });
+        const frameT = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.08, 0.08), screenFrame);
+        frameT.position.set(roomWidth/2, 2.95, 7.9);
+        scene.add(frameT);
+        const frameB = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.08, 0.08), screenFrame);
+        frameB.position.set(roomWidth/2, 0.65, 7.9);
+        scene.add(frameB);
+        const frameL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.4, 0.08), screenFrame);
+        frameL.position.set(roomWidth/2 - 1.55, 1.8, 7.9);
+        scene.add(frameL);
+        const frameR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.4, 0.08), screenFrame);
+        frameR.position.set(roomWidth/2 + 1.55, 1.8, 7.9);
+        scene.add(frameR);
+
+        // Hitting mat on grass
+        const hittingMat = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 0.03, 1.5),
+            new THREE.MeshLambertMaterial({ color: 0x1a4d1a })
+        );
+        hittingMat.position.set(roomWidth/2, 0.12, 5.5);
+        scene.add(hittingMat);
+
+        // Entrance door indicator (right side, near front)
+        const doorFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(0.08, 2.1, 0.9),
+            grayOakMaterial
+        );
+        doorFrame.position.set(roomWidth - 0.05, 1.05, 0.5);
+        scene.add(doorFrame);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.PointLight(0xffffff, 0.8, 20);
+        mainLight.position.set(roomWidth/2, roomHeight - 0.3, 2);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+
+        const mainLight2 = new THREE.PointLight(0xffffff, 0.8, 20);
+        mainLight2.position.set(roomWidth/2, roomHeight - 0.3, 6);
+        mainLight2.castShadow = true;
+        scene.add(mainLight2);
+
+        // Warm accent light for LED strips
+        const ledLight = new THREE.PointLight(0xffffcc, 0.3, 5);
+        ledLight.position.set(roomWidth - 0.5, roomHeight/2, 4);
+        scene.add(ledLight);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
